@@ -3,12 +3,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=batctl
-PKG_VERSION:=2020.4
-PKG_RELEASE:=1
+PKG_VERSION:=2021.3
+PKG_RELEASE:=$(AUTORELEASE)
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://downloads.open-mesh.org/batman/releases/batman-adv-$(PKG_VERSION)
-PKG_HASH:=fc346005b3c19306ccf259329294d1d145a1294e04e9dbde2fb6c37697bb3917
+PKG_HASH:=f22f4befc28f8a4609f1f8403b4c40ea01b83e4f9448453e2bbae3db7b47fc20
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(BUILD_VARIANT)/$(PKG_NAME)-$(PKG_VERSION)
 
 PKG_MAINTAINER:=Simon Wunderlich <sw@simonwunderlich.de>
@@ -95,28 +95,37 @@ config-n := \
 	backbonetable \
 	bisect_iv \
 	bonding \
+	bla_backbone_json \
+	bla_claim_json \
 	bridge_loop_avoidance \
 	claimtable \
 	dat_cache \
+	dat_cache_json \
 	distributed_arp_table \
 	elp_interval \
 	event \
 	fragmentation \
 	gateways \
+	gateways_json \
 	gw_mode \
+	hardif_json \
+	hardifs_json \
 	hop_penalty \
 	interface \
 	isolation_mark \
 	loglevel \
 	mcast_flags \
+	mcast_flags_json \
+	mesh_json \
 	multicast_fanout \
 	multicast_forceflood \
 	multicast_mode \
-	nc_nodes \
 	neighbors \
+	neighbors_json \
 	network_coding \
 	orig_interval \
 	originators \
+	originators_json \
 	ping \
 	routing_algo \
 	statistics \
@@ -127,6 +136,9 @@ config-n := \
 	transglobal \
 	translate \
 	translocal \
+	transtable_global_json \
+	transtable_local_json \
+	vlan_json \
 
 config-settings := \
 	aggregation \
@@ -155,12 +167,26 @@ config-tables := \
 	dat_cache \
 	gateways \
 	mcast_flags \
-	nc_nodes \
 	neighbors \
 	originators \
 	statistics \
 	transglobal \
 	translocal \
+
+config-json := \
+	bla_backbone_json \
+	bla_claim_json \
+	dat_cache_json \
+	gateways_json \
+	hardif_json \
+	hardifs_json \
+	mcast_flags_json \
+	mesh_json \
+	neighbors_json \
+	originators_json \
+	transtable_global_json \
+	transtable_local_json \
+	vlan_json \
 
 config-tools := \
 	event \
@@ -185,6 +211,7 @@ ifeq ($(BUILD_VARIANT),default)
 config-y := \
 	$(config-settings) \
 	$(config-tables) \
+	$(config-json) \
 	$(config-tools) \
 
 endif
@@ -194,6 +221,7 @@ ifeq ($(BUILD_VARIANT),full)
 config-y := \
 	$(config-settings) \
 	$(config-tables) \
+	$(config-json) \
 	$(config-tools) \
 	$(config-extratools) \
 

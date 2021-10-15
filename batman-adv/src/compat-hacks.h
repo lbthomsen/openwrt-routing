@@ -5,106 +5,6 @@
 #include <linux/version.h>	/* LINUX_VERSION_CODE */
 #include <linux/types.h>
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
-
-#include <linux/netdevice.h>
-
-#define netdev_master_upper_dev_link(dev, upper_dev, upper_priv, upper_info, extack) ({\
-	BUILD_BUG_ON(extack != NULL); \
-	netdev_master_upper_dev_link(dev, upper_dev, upper_priv, upper_info); \
-})
-
-#endif /* < KERNEL_VERSION(4, 15, 0) */
-
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 16, 0)
-
-#ifndef sizeof_field
-#define sizeof_field(TYPE, MEMBER) sizeof((((TYPE *)0)->MEMBER))
-#endif
-
-#endif /* < KERNEL_VERSION(4, 16, 0) */
-
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 1, 0)
-
-#include_next <linux/igmp.h>
-#include_next <net/addrconf.h>
-
-static inline int batadv_ipv6_mc_check_mld1(struct sk_buff *skb)
-{
-	return ipv6_mc_check_mld(skb, NULL);
-}
-
-static inline int batadv_ipv6_mc_check_mld2(struct sk_buff *skb,
-					    struct sk_buff **skb_trimmed)
-{
-	return ipv6_mc_check_mld(skb, skb_trimmed);
-}
-
-#define ipv6_mc_check_mld_get(_1, _2, ipv6_mc_check_mld_name, ...) ipv6_mc_check_mld_name
-#define ipv6_mc_check_mld(...) \
-	ipv6_mc_check_mld_get(__VA_ARGS__, batadv_ipv6_mc_check_mld2, batadv_ipv6_mc_check_mld1)(__VA_ARGS__)
-
-static inline int batadv_ip_mc_check_igmp1(struct sk_buff *skb)
-{
-	return ip_mc_check_igmp(skb, NULL);
-}
-
-static inline int batadv_ip_mc_check_igmp2(struct sk_buff *skb,
-					   struct sk_buff **skb_trimmed)
-{
-	return ip_mc_check_igmp(skb, skb_trimmed);
-}
-
-#define ip_mc_check_igmp_get(_1, _2, ip_mc_check_igmp_name, ...) ip_mc_check_igmp_name
-#define ip_mc_check_igmp(...) \
-	ip_mc_check_igmp_get(__VA_ARGS__, batadv_ip_mc_check_igmp2, batadv_ip_mc_check_igmp1)(__VA_ARGS__)
-
-#endif /* < KERNEL_VERSION(5, 1, 0) */
-
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
-
-#define batadv_softif_slave_add(__dev, __slave_dev, __extack) \
-	batadv_softif_slave_add(__dev, __slave_dev)
-
-#endif /* < KERNEL_VERSION(4, 15, 0) */
-
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0)
-
-static inline int batadv_access_ok(int type, const void __user *p,
-				   unsigned long size)
-{
-	return access_ok(type, p, size);
-}
-
-#ifdef access_ok
-#undef access_ok
-#endif
-
-#define access_ok_get(_1, _2, _3 , access_ok_name, ...) access_ok_name
-#define access_ok(...) \
-	access_ok_get(__VA_ARGS__, access_ok3, access_ok2)(__VA_ARGS__)
-
-#define access_ok2(addr, size)	batadv_access_ok(VERIFY_WRITE, (addr), (size))
-#define access_ok3(type, addr, size)	batadv_access_ok((type), (addr), (size))
-
-#endif /* < KERNEL_VERSION(5, 0, 0) */
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0)
-
-#ifndef fallthrough
-#if __GNUC__ > 7 && !defined(__CHECKER__)
-# define fallthrough                    __attribute__((__fallthrough__))
-#else
-# define fallthrough                    do {} while (0)  /* fallthrough */
-#endif
-#endif
-
-#endif /* < KERNEL_VERSION(5, 4, 0) */
-
 #if LINUX_VERSION_IS_LESS(5, 10, 0)
 
 #include <linux/if_bridge.h>
@@ -148,6 +48,71 @@ inline void __batadv_br_ip_list_check(void)
 #define br_ip_list batadv_br_ip_list
 
 #endif /* LINUX_VERSION_IS_LESS(5, 10, 0) */
+
+#if LINUX_VERSION_IS_LESS(5, 14, 0)
+
+#include <linux/if_bridge.h>
+#include <net/addrconf.h>
+
+#if IS_ENABLED(CONFIG_IPV6)
+static inline bool
+br_multicast_has_router_adjacent(struct net_device *dev, int proto)
+{
+	struct list_head bridge_mcast_list = LIST_HEAD_INIT(bridge_mcast_list);
+	struct br_ip_list *br_ip_entry, *tmp;
+	int ret;
+
+	if (proto != ETH_P_IPV6)
+		return true;
+
+	ret = br_multicast_list_adjacent(dev, &bridge_mcast_list);
+	if (ret < 0)
+		return true;
+
+	ret = false;
+
+	list_for_each_entry_safe(br_ip_entry, tmp, &bridge_mcast_list, list) {
+		if (br_ip_entry->addr.proto == htons(ETH_P_IPV6) &&
+		    ipv6_addr_is_ll_all_routers(&br_ip_entry->addr.dst.ip6))
+			ret = true;
+
+		list_del(&br_ip_entry->list);
+		kfree(br_ip_entry);
+	}
+
+	return ret;
+}
+#else
+static inline bool
+br_multicast_has_router_adjacent(struct net_device *dev, int proto)
+{
+	return true;
+}
+#endif
+
+#endif /* LINUX_VERSION_IS_LESS(5, 14, 0) */
+
+#if LINUX_VERSION_IS_LESS(5, 15, 0)
+
+static inline void batadv_dev_put(struct net_device *dev)
+{
+	if (!dev)
+		return;
+
+	dev_put(dev);
+}
+#define dev_put batadv_dev_put
+
+static inline void batadv_dev_hold(struct net_device *dev)
+{
+	if (!dev)
+		return;
+
+	dev_hold(dev);
+}
+#define dev_hold batadv_dev_hold
+
+#endif /* LINUX_VERSION_IS_LESS(5, 15, 0) */
 
 /* <DECLARE_EWMA> */
 
