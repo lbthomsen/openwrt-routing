@@ -3,12 +3,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=alfred
-PKG_VERSION:=2020.3
-PKG_RELEASE:=1
+PKG_VERSION:=2021.3
+PKG_RELEASE:=$(AUTORELEASE)
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://downloads.open-mesh.org/batman/releases/batman-adv-$(PKG_VERSION)
-PKG_HASH:=821739e570fc3da9936e70075ec04a3caf3b847cc8702f13a0725e903e637b8d
+PKG_HASH:=be6229edf2a3e9cf69122e5283d113e9405f1455e8fd4ebd55294e9bf9157b5a
 
 PKG_MAINTAINER:=Simon Wunderlich <sw@simonwunderlich.de>
 PKG_LICENSE:=GPL-2.0-only MIT
